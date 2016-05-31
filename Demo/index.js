@@ -94,7 +94,7 @@ function getWelcomeResponse(callback) {
     // If we wanted to initialize the session to have some attributes we could add those here.
     var sessionAttributes = {};
     var cardTitle = "Welcome";
-    var speechOutput = "Welcome to Space Ball. " +
+    var speechOutput = "Welcome to the Demo. " +
             "Find out if you are in danger from near earth objects by asking, " +
             "am I in danger";
     // If the user either does not reply to the welcome message or says something that is not
