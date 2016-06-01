@@ -1,104 +1,221 @@
-/*
-This function handles a Slack slash command and echoes the details back to the user.
+var https = require('https');
+var options = {
+  host: 'hooks.slack.com',
+  path: '/services/hookid',
+  method: 'POST'
+};
 
-Follow these steps to configure the slash command in Slack:
+/**
+ * This sample shows how to create a simple Lambda function for handling speechlet requests.
+ */
 
-  1. Navigate to https://<your-team-domain>.slack.com/services/new
-
-  2. Search for and select "Slash Commands".
-
-  3. Enter a name for your command and click "Add Slash Command Integration".
-
-  4. Copy the token string from the integration settings and use it in the next section.
-
-  5. After you complete this blueprint, enter the provided API endpoint URL in the URL field.
-
-
-Follow these steps to encrypt your Slack token for use in this function:
-
-  1. Create a KMS key - http://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html.
-
-  2. Encrypt the token using the AWS CLI.
-     $ aws kms encrypt --key-id alias/<KMS key name> --plaintext "<COMMAND_TOKEN>"
-
-  3. Copy the base-64 encoded, encrypted key (CiphertextBlob) to the kmsEncyptedToken variable.
-
-  4. Give your function's role permission for the kms:Decrypt action.
-     Example:
-       {
-         "Version": "2012-10-17",
-         "Statement": [
-           {
-             "Effect": "Allow",
-             "Action": [
-               "kms:Decrypt"
-             ],
-             "Resource": [
-               "<your KMS key ARN>"
-             ]
-           }
-         ]
-       }
-
-Follow these steps to complete the configuration of your command API endpoint
-
-  1. When completing the blueprint configuration select "POST" for method and
-     "Open" for security on the Endpoint Configuration page.
-
-  2. After completing the function creation, open the newly created API in the
-     API Gateway console.
-
-  3. Add a mapping template for the application/x-www-form-urlencoded content type with the
-     following body: { "body": $input.json("$") }
-
-  4. Deploy the API to the prod stage.
-
-  5. Update the URL for your Slack slash command with the invocation URL for the
-     created API resource in the prod stage.
-*/
-
-var AWS = require('aws-sdk');
-var qs = require('querystring');
-var token, kmsEncyptedToken;
-
-kmsEncyptedToken = "<kmsEncryptedToken>";
-
+// Route the incoming request based on type (LaunchRequest, IntentRequest,
+// etc.) The JSON body of the request is provided in the event parameter.
 exports.handler = function (event, context) {
-    if (token) {
-        // Container reuse, simply process the event with the key in memory
-        processEvent(event, context);
-    } else if (kmsEncyptedToken && kmsEncyptedToken !== "<kmsEncryptedToken>") {
-        var encryptedBuf = new Buffer(kmsEncyptedToken, 'base64');
-        var cipherText = {CiphertextBlob: encryptedBuf};
+    try {
+        console.log("event.session.application=" + event.session.application.applicationId);
 
-        var kms = new AWS.KMS();
-        kms.decrypt(cipherText, function (err, data) {
-            if (err) {
-                console.log("Decrypt error: " + err);
-                context.fail(err);
-            } else {
-                token = data.Plaintext.toString('ascii');
-                processEvent(event, context);
-            }
-        });
+        /**
+         * Uncomment this if statement and replace application.id with yours
+         * to prevent other voice applications from using this function.
+         */
+        /*
+        if (event.session.application.id !== "amzn1.echo-sdk-ams.app.[your own app id goes here]") {
+            context.fail("Invalid Application ID");
+        }
+        */
+
+        if (event.session.new) {
+            onSessionStarted({requestId: event.request.requestId}, event.session);
+        }
+
+        if (event.request.type === "LaunchRequest") {
+            onLaunch(event.request,
+                     event.session,
+                     function callback(sessionAttributes, speechletResponse) {
+                        context.succeed(buildResponse(sessionAttributes, speechletResponse));
+                     });
+        }  else if (event.request.type === "IntentRequest") {
+            onIntent(event.request,
+                     event.session,
+                     function callback(sessionAttributes, speechletResponse) {
+                         context.succeed(buildResponse(sessionAttributes, speechletResponse));
+                     });
+        } else if (event.request.type === "SessionEndedRequest") {
+            onSessionEnded(event.request, event.session);
+
+            context.succeed();
+        }
+    } catch (e) {
+        context.fail("Exception: " + e);
+    }
+};
+
+/**
+ * Called when the session starts.
+ */
+function onSessionStarted(sessionStartedRequest, session) {
+    console.log("onSessionStarted requestId=" + sessionStartedRequest.requestId
+                + ", sessionId=" + session.sessionId);
+}
+
+/**
+ * Called when the user launches the app without specifying what they want.
+ */
+function onLaunch(launchRequest, session, callback) {
+    console.log("onLaunch requestId=" + launchRequest.requestId
+                + ", sessionId=" + session.sessionId);
+
+    getWelcomeResponse(callback);
+}
+
+/** 
+ * Called when the user specifies an intent for this application.
+ */
+function onIntent(intentRequest, session, callback) {
+    console.log("onIntent requestId=" + intentRequest.requestId
+                + ", sessionId=" + session.sessionId);
+
+    var intent = intentRequest.intent;
+    var intentName = intentRequest.intent.name;
+
+    if ("MyMessageIntent" === intentName) {
+        console.log("MyMessageIntent");
+        setMessageInSession(intent, session, callback);
     } else {
-        context.fail("Token has not been set.");
+        console.log("Unknown intent");
+        throw "Invalid intent";
     }
-};
+}
 
-var processEvent = function(event, context) {
-    var body = event.body;
-    var params = qs.parse(body);
-    var requestToken = params.token;
-    if (requestToken !== token) {
-        console.error("Request token (" + requestToken + ") does not match exptected");
-        context.fail("Invalid request token");
+/**
+ * Called when the user ends the session.
+ * Is not called when the app returns shouldEndSession=true.
+ */
+function onSessionEnded(sessionEndedRequest, session) {
+    console.log("onSessionEnded requestId=" + sessionEndedRequest.requestId
+                + ", sessionId=" + session.sessionId);
+}
+
+/**
+ * Helpers that build all of the responses.
+ */
+function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
+    return {
+        outputSpeech: {
+            type: "PlainText",
+            text: output
+        },
+        card: {
+            type: "Simple",
+            title: "SessionSpeechlet - " + title,
+            content: "SessionSpeechlet - " + output
+        },
+        reprompt: {
+            outputSpeech: {
+                type: "PlainText",
+                text: repromptText
+            }
+        },
+        shouldEndSession: shouldEndSession
+    }
+}
+
+function buildResponse(sessionAttributes, speechletResponse) {
+    return {
+        version: "1.0",
+        sessionAttributes: sessionAttributes,
+        response: speechletResponse
+    }
+}
+
+/** 
+ * Functions that control the app's behavior.
+ */
+function getWelcomeResponse(callback) {
+    // If we wanted to initialize the session to have some attributes we could add those here.
+    var sessionAttributes = {};
+    var cardTitle = "Welcome";
+    var speechOutput = "Welcome to the Alexa and Lambda Slack demo app, "
+                + "You can give me a message to send to our team's Slack channel by saying, "
+                + "my message is...";
+    // If the user either does not reply to the welcome message or says something that is not
+    // understood, they will be prompted again with this text.
+    var repromptText = "You can give me your message by saying, "
+                + "my message is...";
+    var shouldEndSession = true;
+
+    callback(sessionAttributes,
+             buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+}
+
+/**
+ * Sets the message in the session and prepares the speech to reply to the user.
+ */
+function setMessageInSession(intent, session, callback) {
+    var cardTitle = intent.name;
+    var messageSlot = intent.slots.OutGoingMessage;
+    var repromptText = "";
+    var sessionAttributes = {};
+    var shouldEndSession = true;
+    var speechOutput = "";
+    if (messageSlot) {
+        message = messageSlot.value;
+        console.log("Message slot contains: " + message + ".");
+        sessionAttributes = createMessageAttributes(message);
+        speechOutput = "Your message has been sent saying " + message;
+        repromptText = "";
+        var req = https.request(options, function(res) {
+            res.setEncoding('utf8');
+            res.on('data', function (chunk) {
+                callback(sessionAttributes, 
+                buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+            });
+        });
+        req.on('error', function(e) {
+            console.log('problem with request: ' + e.message);
+            context.fail(e);
+        });
+        req.write('{"channel": "#dreamteam", "username": "alexa-bot", "text": "[via Alexa]: ' + message + '", "icon_emoji": ":ghost:"}');
+        req.end();
+    } else {
+        speechOutput = "I didn't hear your message clearly, please try again";
+        repromptText = "I didn't hear your message clearly, you can give me your "
+                + "message by saying, my message is...";
+    callback(sessionAttributes, 
+             buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    }
+}
+
+function createMessageAttributes(message) {
+    return {
+        message: message
+    };
+}
+
+function getMessageFromSession(intent, session, callback) {
+    var cardTitle = intent.name;
+    var message;
+    var repromptText = null;
+    var sessionAttributes = {};
+    var shouldEndSession = false;
+    var speechOutput = "";
+
+    if(session.attributes) {
+        message = session.attributes.message;
     }
 
-    var user = params.user_name;
-    var command = params.command;
-    var channel = params.channel_name;
-    var commandText = params.text;
+    if(message) {
+        speechOutput = "Your message is " + message + ", goodbye";
+        shouldEndSession = true;
+    }
+    else {
+        speechOutput = "I didn't hear your message clearly. As an example, you can say, My message is 'hello, team!'";
+    }
 
-    context.succeed(user + " invoked " + command + " in " + channel + " with the following text: " + commandText);
-};
+    // Setting repromptText to null signifies that we do not want to reprompt the user. 
+    // If the user does not respond or says something that is not understood, the app session 
+    // closes.
+    callback(sessionAttributes,
+             buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
+}
