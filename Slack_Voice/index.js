@@ -1,10 +1,10 @@
 var https = require('https');
 var options = {
   host: 'hooks.slack.com',
-  path: '/services/hookid',
+  path: '/services/id',
   method: 'POST'
 };
-
+var channelSlot = "";
 /**
  * This sample shows how to create a simple Lambda function for handling speechlet requests.
  */
@@ -82,6 +82,9 @@ function onIntent(intentRequest, session, callback) {
     if ("MyMessageIntent" === intentName) {
         console.log("MyMessageIntent");
         setMessageInSession(intent, session, callback);
+    } else if ("MyChannelIntent" === intentName) {
+        console.log("MyChannelIntent");
+        setChannelInSession(intent, session, callback);
     } else {
         console.log("Unknown intent");
         throw "Invalid intent";
@@ -138,7 +141,7 @@ function getWelcomeResponse(callback) {
     var cardTitle = "Welcome";
     var speechOutput = "Welcome to the Alexa and Lambda Slack demo app, "
                 + "You can give me a message to send to our team's Slack channel by saying, "
-                + "my message is...";
+                + "my target is blank and then say to send blank...";
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
     var repromptText = "You can give me your message by saying, "
@@ -147,6 +150,29 @@ function getWelcomeResponse(callback) {
 
     callback(sessionAttributes,
              buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+}
+
+function setChannelInSession(intent, session, callback) {
+    var cardTitle = intent.name;
+    channelSlot = intent.slots.Channel.value !== undefined ? intent.slots.Channel.value : "";
+    var repromptText = "";
+    var sessionAttributes = {};
+    var shouldEndSession = false;
+    var speechOutput = "";
+    
+    if (channelSlot !== "") {
+        sessionAttributes = createChannelAttributes(channelSlot);
+        speechOutput = "Your message is going on channel " + channelSlot + ". What do you want to say?";
+        repromptText = "I didn't hear you message clearly, can you give me your message to " + channelSlot + "?";
+        callback(sessionAttributes, 
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    } else {
+        speechOutput = "You didn't set a channel.";
+        repromptText = "I didn't hear your channel clearly, you can give me your "
+                + "message by saying, Tell Slack to target...";
+        callback(sessionAttributes, 
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+    }
 }
 
 /**
@@ -159,11 +185,18 @@ function setMessageInSession(intent, session, callback) {
     var sessionAttributes = {};
     var shouldEndSession = true;
     var speechOutput = "";
-    if (messageSlot) {
+    
+    if (session.attributes) {
+        channelSlot = session.attributes.channel;
+        console.log(session.attributes.channel);
+    }
+    
+    if (channelSlot !== "" && messageSlot) {
+        
         message = messageSlot.value;
         console.log("Message slot contains: " + message + ".");
         sessionAttributes = createMessageAttributes(message);
-        speechOutput = "Your message has been sent saying " + message;
+        speechOutput = "Your message has been sent saying " + message + "on channel " + channelSlot;
         repromptText = "";
         var req = https.request(options, function(res) {
             res.setEncoding('utf8');
@@ -176,15 +209,29 @@ function setMessageInSession(intent, session, callback) {
             console.log('problem with request: ' + e.message);
             context.fail(e);
         });
-        req.write('{"channel": "#dreamteam", "username": "alexa-bot", "text": "[via Alexa]: ' + message + '", "icon_emoji": ":ghost:"}');
+        req.write('{"channel": "@vnguyener", "username": "alexa-bot", "text": "[via Alexa]: ' + message + '", "icon_emoji": ":ghost:"}');
         req.end();
     } else {
-        speechOutput = "I didn't hear your message clearly, please try again";
-        repromptText = "I didn't hear your message clearly, you can give me your "
-                + "message by saying, my message is...";
-    callback(sessionAttributes, 
-             buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
+        if (channelSlot === "") {
+            speechOutput = "You didn't set a channel.";
+            repromptText = "I didn't hear your channel clearly, you can give me your "
+                    + "message by saying, Tell Slack to target...";
+        }
+        else {
+            speechOutput = "I didn't hear your message clearly, please try again";
+            repromptText = "I didn't hear your message clearly, you can give me your "
+                    + "message by saying, Tell Slack to send...";
+        
+        }
+        callback(sessionAttributes, 
+        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
     }
+}
+
+function createChannelAttributes(channel) {
+    return {
+        channel: channel
+    };
 }
 
 function createMessageAttributes(message) {
