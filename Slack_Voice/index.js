@@ -1,34 +1,26 @@
-var https = require('https');
-var options = {
+/* global channelSlot */
+let https = require('https');
+
+let options = {
   host: 'hooks.slack.com',
   path: '/services/id',
   method: 'POST'
 };
-var channelSlot = "";
-/**
- * This sample shows how to create a simple Lambda function for handling speechlet requests.
- */
 
-// Route the incoming request based on type (LaunchRequest, IntentRequest,
-// etc.) The JSON body of the request is provided in the event parameter.
-exports.handler = function (event, context) {
+//// Route the incoming request based on type (LaunchRequest, IntentRequest,
+//// etc.) The JSON body of the request is provided in the event parameter.
+exports.handler = (event, context) => {
     try {
         console.log("event.session.application=" + event.session.application.applicationId);
 
-        /**
-         * Uncomment this if statement and replace application.id with yours
-         * to prevent other voice applications from using this function.
-         */
-        /*
-        if (event.session.application.id !== "amzn1.echo-sdk-ams.app.[your own app id goes here]") {
-            context.fail("Invalid Application ID");
-        }
-        */
+
+         //// Uncomment this if statement and replace application.id with yours
+         //// to prevent other voice applications from using this function.
 
         if (event.session.new) {
             onSessionStarted({requestId: event.request.requestId}, event.session);
         }
-
+            
         if (event.request.type === "LaunchRequest") {
             onLaunch(event.request,
                      event.session,
@@ -51,17 +43,17 @@ exports.handler = function (event, context) {
     }
 };
 
-/**
- * Called when the session starts.
- */
+
+//// Called when the session starts.
+
 function onSessionStarted(sessionStartedRequest, session) {
     console.log("onSessionStarted requestId=" + sessionStartedRequest.requestId
                 + ", sessionId=" + session.sessionId);
 }
 
-/**
- * Called when the user launches the app without specifying what they want.
- */
+
+//// Called when the user launches the app without specifying what they want.
+
 function onLaunch(launchRequest, session, callback) {
     console.log("onLaunch requestId=" + launchRequest.requestId
                 + ", sessionId=" + session.sessionId);
@@ -69,15 +61,15 @@ function onLaunch(launchRequest, session, callback) {
     getWelcomeResponse(callback);
 }
 
-/** 
- * Called when the user specifies an intent for this application.
- */
+
+//// Called when the user specifies an intent for this application.
+
 function onIntent(intentRequest, session, callback) {
     console.log("onIntent requestId=" + intentRequest.requestId
                 + ", sessionId=" + session.sessionId);
 
-    var intent = intentRequest.intent;
-    var intentName = intentRequest.intent.name;
+    let intent = intentRequest.intent;
+    let intentName = intentRequest.intent.name;
 
     if ("MyMessageIntent" === intentName) {
         console.log("MyMessageIntent");
@@ -91,18 +83,17 @@ function onIntent(intentRequest, session, callback) {
     }
 }
 
-/**
- * Called when the user ends the session.
- * Is not called when the app returns shouldEndSession=true.
- */
+
+//// Called when the user ends the session.
+//// Is not called when the app returns shouldEndSession=true.
+
 function onSessionEnded(sessionEndedRequest, session) {
     console.log("onSessionEnded requestId=" + sessionEndedRequest.requestId
                 + ", sessionId=" + session.sessionId);
 }
 
-/**
- * Helpers that build all of the responses.
- */
+//// Helpers that build all of the responses.
+
 function buildSpeechletResponse(title, output, repromptText, shouldEndSession) {
     return {
         outputSpeech: {
@@ -132,33 +123,33 @@ function buildResponse(sessionAttributes, speechletResponse) {
     }
 }
 
-/** 
- * Functions that control the app's behavior.
- */
+
+//// Functions that control the app's behavior.
+
 function getWelcomeResponse(callback) {
     // If we wanted to initialize the session to have some attributes we could add those here.
-    var sessionAttributes = {};
-    var cardTitle = "Welcome";
-    var speechOutput = "Welcome to the Alexa and Lambda Slack demo app, "
+    let sessionAttributes = {};
+    let cardTitle = "Welcome";
+    let speechOutput = "Welcome to the Alexa and Lambda Slack demo app, "
                 + "You can give me a message to send to our team's Slack channel by saying, "
                 + "my target is blank and then say to send blank...";
     // If the user either does not reply to the welcome message or says something that is not
     // understood, they will be prompted again with this text.
-    var repromptText = "You can give me your message by saying, "
+    let repromptText = "You can give me your message by saying, "
                 + "my message is...";
-    var shouldEndSession = true;
+    let shouldEndSession = true;
 
     callback(sessionAttributes,
              buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
 }
 
 function setChannelInSession(intent, session, callback) {
-    var cardTitle = intent.name;
+    let cardTitle = intent.name;
     channelSlot = intent.slots.Channel.value !== undefined ? intent.slots.Channel.value : "";
-    var repromptText = "";
-    var sessionAttributes = {};
-    var shouldEndSession = false;
-    var speechOutput = "";
+    let repromptText = "";
+    let sessionAttributes = {};
+    let shouldEndSession = false;
+    let speechOutput = "";
     
     if (channelSlot !== "") {
         sessionAttributes = createChannelAttributes(channelSlot);
@@ -175,20 +166,23 @@ function setChannelInSession(intent, session, callback) {
     }
 }
 
-/**
- * Sets the message in the session and prepares the speech to reply to the user.
- */
+
+//// Sets the message in the session and prepares the speech to reply to the user.
+
 function setMessageInSession(intent, session, callback) {
-    var cardTitle = intent.name;
-    var messageSlot = intent.slots.OutGoingMessage;
-    var repromptText = "";
-    var sessionAttributes = {};
-    var shouldEndSession = true;
-    var speechOutput = "";
+    let cardTitle = intent.name;
+    let messageSlot = intent.slots.OutGoingMessage;
+    let repromptText = "";
+    let sessionAttributes = {};
+    let shouldEndSession = true;
+    let speechOutput = "";
     
     if (session.attributes) {
         channelSlot = session.attributes.channel;
         console.log(session.attributes.channel);
+    }
+    else {
+        channelSlot = "general"
     }
     
     if (channelSlot !== "" && messageSlot) {
@@ -196,9 +190,9 @@ function setMessageInSession(intent, session, callback) {
         message = messageSlot.value;
         console.log("Message slot contains: " + message + ".");
         sessionAttributes = createMessageAttributes(message);
-        speechOutput = "Your message has been sent saying " + message + "on channel " + channelSlot;
+        speechOutput = "Your message has been sent saying " + message;
         repromptText = "";
-        var req = https.request(options, function(res) {
+        let req = https.request(options, function(res) {
             res.setEncoding('utf8');
             res.on('data', function (chunk) {
                 callback(sessionAttributes, 
@@ -211,20 +205,6 @@ function setMessageInSession(intent, session, callback) {
         });
         req.write('{"channel": "@vnguyener", "username": "alexa-bot", "text": "[via Alexa]: ' + message + '", "icon_emoji": ":ghost:"}');
         req.end();
-    } else {
-        if (channelSlot === "") {
-            speechOutput = "You didn't set a channel.";
-            repromptText = "I didn't hear your channel clearly, you can give me your "
-                    + "message by saying, Tell Slack to target...";
-        }
-        else {
-            speechOutput = "I didn't hear your message clearly, please try again";
-            repromptText = "I didn't hear your message clearly, you can give me your "
-                    + "message by saying, Tell Slack to send...";
-        
-        }
-        callback(sessionAttributes, 
-        buildSpeechletResponse(cardTitle, speechOutput, repromptText, shouldEndSession));
     }
 }
 
@@ -238,31 +218,4 @@ function createMessageAttributes(message) {
     return {
         message: message
     };
-}
-
-function getMessageFromSession(intent, session, callback) {
-    var cardTitle = intent.name;
-    var message;
-    var repromptText = null;
-    var sessionAttributes = {};
-    var shouldEndSession = false;
-    var speechOutput = "";
-
-    if(session.attributes) {
-        message = session.attributes.message;
-    }
-
-    if(message) {
-        speechOutput = "Your message is " + message + ", goodbye";
-        shouldEndSession = true;
-    }
-    else {
-        speechOutput = "I didn't hear your message clearly. As an example, you can say, My message is 'hello, team!'";
-    }
-
-    // Setting repromptText to null signifies that we do not want to reprompt the user. 
-    // If the user does not respond or says something that is not understood, the app session 
-    // closes.
-    callback(sessionAttributes,
-             buildSpeechletResponse(intent.name, speechOutput, repromptText, shouldEndSession));
 }
