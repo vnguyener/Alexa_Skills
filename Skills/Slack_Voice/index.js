@@ -1,12 +1,15 @@
 let https = require('https');
+let request = require('./Shared/request.handler');
 let options = {
   host: 'hooks.slack.com',
-    path: '/services/:id',
-    method: 'POST'
+  path: '/services/:id',
+  method: 'POST'
 };
-let channelSlot = '';
 
 exports.handler = (event, context) => {
+
+    let channelSlot = '';
+
     try {
         if (event.session.new) {
             onSessionStarted({ requestId: event.request.requestId }, event.session);
