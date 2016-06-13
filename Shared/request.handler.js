@@ -41,7 +41,11 @@ function request() {
   }
 
   function onLaunchRequest(event) {
-
+      let request = event.request;
+      let session = event.response;
+      
+      console.log('Alexa Skills laucned w/ requestId= ' + request.requestId 
+        + ', sessionId= ' + session.sessionId)
   }
 
   function onIntentRequest(event) {
@@ -49,7 +53,10 @@ function request() {
   }
 
   function onSessionEnd(event) {
-          console.log('Alexa session has ended w/ requestId= ' + event.request.requestId
+      let request = event.request;
+      let session = event.response;
+      
+      console.log('Alexa session has ended w/ requestId= ' + event.request.requestId
         + ', sessionId=' + event.session.sessionId);
   }
 }
