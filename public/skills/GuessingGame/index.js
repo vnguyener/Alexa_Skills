@@ -13,12 +13,12 @@ app.launch(function(req, res) {
 });
 
 app.intent('guess', {
-        'slots': {'guess': 'NUMBER'}
-        ,'utterances': ['{1-100}|guess']
+        'slots': {'GUESSNUM': 'NUMBER'}
+        ,'utterances': ['{GUESSNUM}']
     },
     function(req, res) {
         var guesses = (+req.session('guesses')) + 1;
-        var guess = req.slot('guess');
+        var guess = req.slot('GUESSNUM');
         var number = +req.session('number');
         if (!guess) {
             res.say('Sorry, I didn\'t hear a number. The number was' + number);

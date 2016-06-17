@@ -1,5 +1,5 @@
 {
-  "name": "guessing_game",
+  "name": "guessing-game",
   "version": "1.0.0",
   "description": "A sample alexa app for guessing numbers",
   "main": "index.js",
@@ -8,8 +8,14 @@
     "applicationId":"amzn1.echo-sdk-ams.app.999999-d0ed-9999-ad00-999999d00ebe"
   },
   "dependencies": {
-    "alexa-app": "^2.3.4"
+    "alexa-app": "^2.3.4",
+    "bluebird": "^2.9.34",
+    "body-parser": "~1.0.1",
+    "ejs": "~2.4.2",
+    "express": "~4.13.3",
+    "hotswap": "^1.1.0"
   },
   "devDependencies": {
+    "supervisor": "^0.6.0"
   }
 }

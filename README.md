@@ -5,11 +5,11 @@
 1. Demo - NASA API
 2. Who's that Pokemon? (Decomissioned for now. can't require('Request') in AWS Lambda :( )
     * integrate poke api instead of custom web service
-3. Trivia Game
+3. Game of Numbers = guessing game
 4. Javascript Skills Test
 5. Todoist
 6. Slack Voice
     * integrate channel specifying
     * integrate link sharing
 7. Gmail Voice
-8. ...
+8. Indeed Update
