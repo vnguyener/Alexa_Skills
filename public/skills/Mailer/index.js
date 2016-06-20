@@ -1,7 +1,11 @@
 var alexa = require('alexa-app');
 var app = new alexa.app('mailer');
 var nodemailer = require('nodemailer');
-var transporter = nodemailer.createTransport('smtp://emailrelay.corpint.net');
+var transporter = nodemailer.createTransport({
+        ignoreTLS: true,
+        host: ""
+    });
+
 
 // Allow this module to be reloaded by hotswap when changed
 module.change_code = 1;
@@ -22,7 +26,7 @@ app.intent('BODY', {
         var mailOptions = {
             from: 'Vu From <vtnguyen@santanderconsumerusa.com>', 
             to: 'Vu To <vtnguyen@santanderconsumerusa.com>', 
-            subject: 'Hi', 
+            subject: 'Alexa - Vu Nguyen', 
             text: body
         };
 
