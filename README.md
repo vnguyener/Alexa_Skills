@@ -3,8 +3,8 @@
 ## Here's a list of skills that are in this repo and/or currently in progress
 
 * Demo - NASA API
-* Who's that Pokemon? (In-Development)
-* Game of Numbers = guessing game (85%)
+* Pokedex
+* Game of Numbers
 * Javascript Skills Test (In-Design)
 * Todoist (In-Design)
 * Slack Voice(20%)
