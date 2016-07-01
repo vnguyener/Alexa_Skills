@@ -5,7 +5,7 @@ var app = new alexa.app('guessinggame');
 module.change_code = 1;
 
 app.launch(function(req, res) {
-   var number = Math.floor(Math.random() * 99) + 1;
+   var number = Math.floor(Math.random() * 99) + 1; //redo being.... coercion...asdladfsjk
    var prompt = 'Guess a number between 1 and 100!';
    res.session('number', number);
    res.session('guesses', 0);
