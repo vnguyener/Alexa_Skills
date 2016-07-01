@@ -1,6 +1,6 @@
 "use strict";
+
 const request = require('request');
-const http = require('http');
 const url = 'http://pokeapi.co';
 
 let getJSON = function(path) {
@@ -42,7 +42,10 @@ const Pokedex = function() {
     
     return {
         getPokemonById: getPokemonById,
-        getPokemonByName: getPokemonByName
+        getPokemonByName: getPokemonByName,
+        getMoveByName: getMoveByName,
+        getLocationByName: getLocationByName,
+        getEvolutionChainById: getEvolutionChainById
     }
 };
 
