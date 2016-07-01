@@ -1,14 +1,22 @@
 var alexa = require('alexa-app');
 var app = new alexa.app('mailer');
 var nodemailer = require('nodemailer');
-var transporter = nodemailer.createTransport('smtp://emailrelay.corpint.net');
+var smtpTransport = require('nodemailer-smtp-transport');
+
+var transport = nodemailer.createTransport(smtpTransport({
+    service: 'gmail',
+    ignoreTLS: true,
+    auth: {
+        user: 'its.vnguyen@gmail.com', // my mail
+        pass: 'SWichita0130!!@'
+    }
+}));
 
 // Allow this module to be reloaded by hotswap when changed
 module.change_code = 1;
 
 app.launch(function(req, res) {
-   var launchPrompt = 'let\'s send some phoney mail!';
-   //res.session('number', number);
+   var launchPrompt = 'Who would you like to send mail to today?';
    res.say(launchPrompt).reprompt(launchPrompt).shouldEndSession(false);
 });
 
@@ -20,15 +28,15 @@ app.intent('BODY', {
         var body = req.slot('MAILBODY');
 
         var mailOptions = {
-            from: 'Vu From <vtnguyen@santanderconsumerusa.com>', 
-            to: 'Vu To <vtnguyen@santanderconsumerusa.com>', 
-            subject: 'Hi', 
+            from: 'Vu From <its.vnguyen@gmail.com>', 
+            to: 'Vu To <its.vnguyen@gmail.com>', 
+            subject: 'Alexa - Vu Nguyen', 
             text: body
         };
 
         console.log(mailOptions);
 
-        transporter.sendMail(mailOptions, function(error, info){
+        transport.sendMail(mailOptions, function(error, info){
             if(error){
                 res.reprompt('Sorry, there was an error trying to send an email. Try again.');
                 console.log(error);
