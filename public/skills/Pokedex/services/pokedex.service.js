@@ -20,28 +20,29 @@ let getJSON = function(path) {
 }
 
 const Pokedex = function() {
-    let getPokemonByID = function(id) {
+    let getPokemonById = function(id) {
         return getJSON(url + '/api/v2/pokemon/' + id);
     }
 
-    let getPokemonByName = function() {
-
+    let getPokemonByName = function(name) {
+        return getJSON(url + '/api/v2/pokemon/' + name);
     }
 
-    let getMoveByName = function() {
-
+    let getMoveByName = function(name) {
+        return getJSON(url + '/api/v2/move/' + name);
     }
 
-    let getLocationById = function() {
-
+    let getLocationByName = function(name) {
+        return getJSON(url + '/api/v2/location/' + name);
     }
 
-    let getEvolutionChainBy = function() {
-
+    let getEvolutionChainById = function(id) {
+        return getJSON(url + '/api/v2/evolution-chain/' + id);
     }
     
     return {
-        getPokemonByID: getPokemonByID
+        getPokemonById: getPokemonById,
+        getPokemonByName: getPokemonByName
     }
 };
 
