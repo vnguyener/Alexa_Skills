@@ -8,7 +8,7 @@ var transport = nodemailer.createTransport(smtpTransport({
     ignoreTLS: true,
     auth: {
         user: 'its.vnguyen@gmail.com', // my mail
-        pass: 'SWichita0130!!@'
+        pass: ''
     }
 }));
 
