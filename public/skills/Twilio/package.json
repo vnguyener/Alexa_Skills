@@ -1,5 +1,5 @@
 {
-  "name": "hey-twilio",
+  "name": "heytwilio",
   "version": "1.0.0",
   "description": "twilio api w/ alexa",
   "main": "index.js",
