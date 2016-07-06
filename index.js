@@ -2,7 +2,7 @@
 
 const hotswap = require('hotswap'),
 	fs = require('fs'),
-	path = path = require('path'),
+	path = require('path'),
 	http = require('http'),
 	https = require('https'),
 	express = require('express'),
@@ -62,7 +62,7 @@ let appServer = function (config) {
 				self.apps[pkg.name] = pkg;
 				self.apps[pkg.name].exports = app;
 				if (typeof app.express != "function") {
-					self.log("   App [" + pkg.name + "] is not an instance of alexa-app");
+					self.log("   [" + pkg.name + "] is not an instance of alexa-app");
 					return;
 				}
 
@@ -112,10 +112,10 @@ let appServer = function (config) {
 					});
 				}
 
-				self.log("   Loaded app [" + pkg.name + "] at endpoint: " + endpoint);
+				self.log("   Loaded skill [" + pkg.name + "] at endpoint: " + endpoint);
 			}
 			catch (e) {
-				self.log("Error loading app [" + main + "]: " + e);
+				self.log("Error loading skill [" + main + "]: " + e);
 			}
 		});
 		return self.apps;
@@ -134,11 +134,11 @@ let appServer = function (config) {
 		let app_dir = path.join(server_root, config.app_dir || 'skills');
 
 		if (fs.existsSync(app_dir) && fs.statSync(app_dir).isDirectory()) {
-			self.log("Loading apps from: " + app_dir);
+			self.log("Loading alexa-skills from directory: " + app_dir);
 			self.loadSkills(app_dir, config.app_root || '/alexa/');
 		}
 		else {
-			self.log("Apps not loaded because directory [" + app_dir + "] does not exist");
+			self.log("Skills not loaded because directory [" + app_dir + "] does not exist");
 		}
 
 		// Start the server listening
