@@ -5,19 +5,18 @@
 * Demo - NASA API
 * Pokedex
 * Game of Numbers
-* Javascript Skills Test (In-Design)
 * Todoist (In-Design)
 * Slack Voice(20%)
-    * integrate channel specifying
-    * integrate link sharing
-* Gmail Voice (In-Development)
+  * integrate channel specifying
+  * integrate link sharing
+* Hey Twilio (finished text messaging)
 * Indeed Update (In-Development)
 
 
 ## Initializing
 
 * npm install
-* Make sure you're pointing at Alexa_Skills > Public
+* Make sure you're pointing at Alexa_Skills > src
 * node server.js
 * Localhost:_____/alexa/{skillname} - to navigate to your desired skill
 * currently, i'm using alexa-app, alexa-app-server to develop in nodejs
