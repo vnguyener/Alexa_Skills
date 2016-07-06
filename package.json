@@ -17,11 +17,22 @@
   },
   "homepage": "https://github.com/vnguyener/Alexa_Skills#readme",
   "dependencies": {
-    "request": "*"
+    "request": "*",
+    "angular": "1.5.7"
   },
   "devDependencies": {
     "gulp": "*",
     "gulp-mocha": "*",
+    "gulp-concat": "^2.6.0",
+    "gulp-eslint": "^2.0.0",
+    "gulp-sass": "~2.3.2",
+    "gulp-clean-css": "~2.0.10",
+    "gulp-todo": "^4.1.0",
+    "gulp-ng-annotate": "~2.0.0",
+    "gulp-connect": "~4.1.0",
+    "gulp-uglify": "~1.5.4",
+    "gulp-notify": "~2.2.0",
+    "del": "~2.2.1",
     "chai": "*",
     "mocha": "*"
   }
